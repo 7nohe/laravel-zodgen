@@ -1,1 +1,2 @@
-export const defaultOutputPath = 'resources/ts/zod';
+export const defaultOutputPath = 'resources/js';
+export const defaultFormRequestPath = 'app/Http/Requests';

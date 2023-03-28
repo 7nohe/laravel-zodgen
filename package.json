@@ -6,17 +6,31 @@
   "bin": {
     "laravel-zodgen": "dist/src/cli.js"
   },
+  "exports": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "prepublishOnly": "pnpm run build",
+    "release": "npx git-ensure -a && npx bumpp --commit --tag --push"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/7nohe/laravel-zodgen.git"
+  },
+  "homepage": "https://github.com/7nohe/laravel-zodgen",
+  "bugs": "https://github.com/7nohe/laravel-zodgen/issues",
+  "files": [
+    "dist"
+  ],
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "commander": "^10.0.0",
     "glob": "^9.3.2",
     "php-parser": "^3.1.4",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@types/node": "^18.15.6"
