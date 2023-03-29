@@ -8,13 +8,26 @@ import { createZodSchema, Rules } from "./createZodSchema";
 import ts from "typescript";
 import { createZodImport } from "./createZodImport";
 
-export async function generate({ formRequestPath, output }: CLIOptions) {
-  const formRequests = glob.sync(`${formRequestPath ?? defaultFormRequestPath}/*.php`);
-  const rules: { [key: string]: Rules } = formRequests.reduce((acc, formRequest) => ({
-    ...acc,
-    [path.basename(formRequest, path.extname(formRequest))]: getRules({ formRequestPath: formRequest })
-  }), {});
-  const schemas = Object.entries(rules).map(([key, value]) => createZodSchema({ objectName: key, rules: value }))
+export async function generate({
+  formRequestPath,
+  output,
+  coercion,
+}: CLIOptions) {
+  const formRequests = glob.sync(
+    `${formRequestPath ?? defaultFormRequestPath}/*.php`
+  );
+  const rules: { [key: string]: Rules } = formRequests.reduce(
+    (acc, formRequest) => ({
+      ...acc,
+      [path.basename(formRequest, path.extname(formRequest))]: getRules({
+        formRequestPath: formRequest,
+      }),
+    }),
+    {}
+  );
+  const schemas = Object.entries(rules).map(([key, value]) =>
+    createZodSchema({ objectName: key, rules: value, coercion })
+  );
   const sourceFile = ts.factory.createSourceFile(
     [createZodImport(), ...schemas],
     ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
@@ -25,7 +38,7 @@ export async function generate({ formRequestPath, output }: CLIOptions) {
     ts.EmitHint.Unspecified,
     sourceFile,
     ts.createSourceFile(
-      'schema.ts',
+      "schema.ts",
       "",
       ts.ScriptTarget.Latest,
       false,
@@ -35,5 +48,5 @@ export async function generate({ formRequestPath, output }: CLIOptions) {
   if (!fs.existsSync(output)) {
     fs.mkdirSync(output, { recursive: true });
   }
-  fs.writeFileSync(path.join(output, 'schema.ts'), result);
+  fs.writeFileSync(path.join(output, "schema.ts"), result);
 }

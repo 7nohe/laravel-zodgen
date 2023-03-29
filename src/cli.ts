@@ -2,11 +2,12 @@
 import { generate } from "./generate";
 import { Command } from "commander";
 import packageJson from "../package.json";
-import {  defaultFormRequestPath, defaultOutputPath } from "./constants";
+import { defaultFormRequestPath, defaultOutputPath } from "./constants";
 
 export type CLIOptions = {
   output: string;
   formRequestPath: string;
+  coercion: boolean;
 };
 
 const program = new Command();
@@ -16,7 +17,12 @@ program
   .version(packageJson.version)
   .description("Generate TypeScript types from your Laravel code")
   .option("-o, --output <value>", "Output directory", defaultOutputPath)
-  .option("--form-request-path", "Path for Laravel's FormRequest classes", defaultFormRequestPath)
+  .option(
+    "--form-request-path",
+    "Path for Laravel's FormRequest classes",
+    defaultFormRequestPath
+  )
+  .option("--coercion", "Coercion for primitives", false)
   .parse();
 
 const options = program.opts<CLIOptions>();
@@ -28,5 +34,5 @@ try {
     console.log(`Code generated successfully!!`);
   });
 } catch {
-  console.log('Failed to generate code.')
+  console.log("Failed to generate code.");
 }
