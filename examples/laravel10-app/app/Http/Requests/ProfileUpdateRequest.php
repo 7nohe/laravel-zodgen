@@ -20,7 +20,9 @@ class ProfileUpdateRequest extends FormRequest
             'email' => ['email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
             'age' => 'integer',
             'height' => 'decimal:2,3',
-            'bio' => 'required'
+            'bio' => 'required',
+            'address.*.country' => 'required',
+            'address.*.city' => 'required',
         ];
     }
 }

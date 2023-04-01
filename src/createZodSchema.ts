@@ -4,83 +4,20 @@ import ts, {
   PropertyAccessExpression,
 } from "typescript";
 import { CLIOptions } from "./cli";
+import { isPrimitive } from "./utils/isPrimitive";
+import { AnyObject, mergeObjects } from "./utils/mergeObjects";
 
-type Field = { name: string; param?: string | number };
+type Field = { name: string; param?: string | number; children?: Field };
 export type Rules = { [key: string]: string[] };
-export type ParsedRules = { [key: string]: Field[] };
+export type ParsedRules = Record<string, Field[] | Record<string, any>>;
 
 export type CreateZodSchemaType = Pick<CLIOptions, "coercion"> & {
   objectName: string;
   rules: Rules;
 };
 
-export const createZodSchema = ({
-  objectName,
-  rules,
-  coercion,
-}: CreateZodSchemaType) => {
-  const zodRules = convertLaravelRulesToZodRules(rules);
-  const propertyAssignments = Object.entries(zodRules).map(([key, value]) => {
-    const firstValue = value.at(0);
-    let property: CallExpression | Identifier | PropertyAccessExpression =
-      coercion && firstValue && isPrimitive(firstValue.name)
-        ? ts.factory.createPropertyAccessExpression(
-            ts.factory.createIdentifier("z"),
-            ts.factory.createIdentifier("coerce")
-          )
-        : ts.factory.createIdentifier("z");
-    value.forEach((rule) => {
-      property = ts.factory.createCallExpression(
-        ts.factory.createPropertyAccessExpression(
-          property,
-          ts.factory.createIdentifier(rule.name)
-        ),
-        undefined,
-        rule.param
-          ? [
-              typeof rule.param === "number"
-                ? ts.factory.createNumericLiteral(rule.param)
-                : ts.factory.createStringLiteral(rule.param),
-            ]
-          : []
-      );
-    });
-    return ts.factory.createPropertyAssignment(
-      ts.factory.createIdentifier(key),
-      property
-    );
-  });
-
-  return ts.factory.createVariableStatement(
-    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
-    ts.factory.createVariableDeclarationList(
-      [
-        ts.factory.createVariableDeclaration(
-          ts.factory.createIdentifier(objectName),
-          undefined,
-          undefined,
-          ts.factory.createCallExpression(
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createIdentifier("z"),
-              ts.factory.createIdentifier("object")
-            ),
-            undefined,
-            [
-              ts.factory.createObjectLiteralExpression(
-                propertyAssignments,
-                true
-              ),
-            ]
-          )
-        ),
-      ],
-      ts.NodeFlags.Const
-    )
-  );
-};
-
-const convertLaravelRulesToZodRules = (rules: Rules) => {
-  const zodRules: ParsedRules = Object.entries(rules).reduce(
+const parseRules = (rules: Rules) => {
+  const parsedRules: ParsedRules = Object.entries(rules).reduce(
     (acc, [key, value]) => {
       const newValue: Field[] = [];
       let isRequired = false;
@@ -157,9 +94,121 @@ const convertLaravelRulesToZodRules = (rules: Rules) => {
     },
     {}
   );
-  return zodRules;
+  let mergedResult: ParsedRules = {};
+  for (const key in parsedRules) {
+    const value = parsedRules[key];
+    const keys = key.split(".").reverse();
+    let result: AnyObject = value;
+    for (const k of keys) {
+      result = {
+        [k]: result,
+      };
+    }
+    mergedResult = mergeObjects(mergedResult, result);
+  }
+  return mergedResult;
 };
 
-const isPrimitive = (ruleName: string) => {
-  return ["string", "number", "bigint", "boolean", "date"].includes(ruleName);
+const convertRulesToSchema = (
+  rules: ParsedRules | Field[],
+  coercion: boolean
+): ts.Expression => {
+  if (Array.isArray(rules)) {
+    const firstValue = rules.at(0);
+    let property: CallExpression | Identifier | PropertyAccessExpression =
+      coercion && firstValue && isPrimitive(firstValue.name)
+        ? ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier("z"),
+            ts.factory.createIdentifier("coerce")
+          )
+        : ts.factory.createIdentifier("z");
+    rules.forEach((rule) => {
+      property = ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          property,
+          ts.factory.createIdentifier(rule.name)
+        ),
+        undefined,
+        rule.param
+          ? [
+              typeof rule.param === "number"
+                ? ts.factory.createNumericLiteral(rule.param)
+                : ts.factory.createStringLiteral(rule.param),
+            ]
+          : []
+      );
+    });
+    return property;
+  }
+  if (typeof rules === "object" && rules !== null) {
+    const [firstKey, firstValue] = Object.entries(rules).at(0) ?? [];
+    // array input validation
+    // eg: 'person.*.email'
+    if (firstKey === "*" && firstValue && !Array.isArray(firstValue)) {
+      const schema = convertRulesToSchema(firstValue, coercion);
+      return ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier("z"),
+          ts.factory.createIdentifier("array")
+        ),
+        undefined,
+        [schema]
+      );
+    }
+    return ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier("z"),
+        ts.factory.createIdentifier("object")
+      ),
+      undefined,
+      [
+        ts.factory.createObjectLiteralExpression(
+          Object.entries(rules).map(([k, v]) => {
+            const schema = convertRulesToSchema(v, coercion);
+            return ts.factory.createPropertyAssignment(
+              ts.factory.createIdentifier(k),
+              schema
+            );
+          }),
+          true
+        ),
+      ]
+    );
+  }
+
+  return ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier("z"),
+      ts.factory.createIdentifier("any")
+    ),
+    undefined,
+    []
+  );
+};
+
+export const createZodSchema = ({
+  objectName,
+  rules,
+  coercion,
+}: CreateZodSchemaType) => {
+  // Parse Laravel validation rules into data for generating Zod schema code
+  const parsedRules = parseRules(rules);
+
+  // Convert parsed rules into Zod schema code
+  const schema = convertRulesToSchema(parsedRules, coercion);
+
+  return ts.factory.createVariableStatement(
+    [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
+    ts.factory.createVariableDeclarationList(
+      [
+        ts.factory.createVariableDeclaration(
+          ts.factory.createIdentifier(objectName),
+          undefined,
+          undefined,
+          schema
+        ),
+      ],
+      ts.NodeFlags.Const
+    )
+  );
 };

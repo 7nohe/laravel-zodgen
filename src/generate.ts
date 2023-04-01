@@ -13,9 +13,10 @@ export async function generate({
   output,
   coercion,
 }: CLIOptions) {
-  const formRequests = glob.sync(
-    `${formRequestPath ?? defaultFormRequestPath}/*.php`
-  );
+  const parsedFormRequestsPath = path
+    .join(formRequestPath, "**", "*.php")
+    .replace(/\\/g, "/");
+  const formRequests = glob.sync(parsedFormRequestsPath);
   const rules: { [key: string]: Rules } = formRequests.reduce(
     (acc, formRequest) => ({
       ...acc,
