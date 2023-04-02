@@ -24,6 +24,7 @@ const form = useForm({
     age: user.age,
     height: user.height,
     bio: user.bio,
+    address: user.address ?? [{ city: '', country: '' }, { city: '', country: '', }],
 });
 </script>
 
@@ -57,18 +58,53 @@ const form = useForm({
             <div>
                 <InputLabel for="age" value="Age" />
 
-                <TextField name="age" id="age" type="text" class="mt-1 block w-full" v-model="form.age" />
-                <FieldErrorMessage class="mt-2" name="age" />
-                <InputError class="mt-2" :message="form.errors.age" />
-            </div>
+            <TextField name="age" id="age" type="text" class="mt-1 block w-full" v-model="form.age" />
+            <FieldErrorMessage class="mt-2" name="age" />
+            <InputError class="mt-2" :message="form.errors.age" />
+        </div>
 
-            <div>
+        <div>
                 <InputLabel for="height" value="Height" />
 
                 <TextField name="height" id="height" type="text" class="mt-1 block w-full" v-model="form.height" />
                 <FieldErrorMessage class="mt-2" name="height" />
                 <InputError class="mt-2" :message="form.errors.height" />
             </div>
+
+
+            <div>
+                <InputLabel for="address[0].country" value="Country 1" />
+
+                <TextField name="address[0].country" id="address[0].country" type="text" class="mt-1 block w-full"
+                    :model-value="form.address[0].country"
+                    @update:model-value="(value) => form.address[0].country = value" />
+                <FieldErrorMessage class="mt-2" name="address[0].country" />
+            </div>
+            <div>
+                <InputLabel for="address[0].city" value="City 1" />
+
+                <TextField name="address[0].city" id="address[0].city" type="text" class="mt-1 block w-full"
+                    :model-value="form.address[0].city" @update:model-value="(value) => form.address[0].city = value" />
+                <FieldErrorMessage class="mt-2" name="address[0].city" />
+            </div>
+            <InputError class="mt-2" :message="form.errors.address?.[0]" />
+
+            <div>
+                <InputLabel for="address[1].country" value="Country 2" />
+
+                <TextField name="address[1].country" id="address[1].country" type="text" class="mt-1 block w-full"
+                    :model-value="form.address[1].country"
+                    @update:model-value="(value) => form.address[1].country = value" />
+                <FieldErrorMessage class="mt-2" name="address[1].country" />
+            </div>
+            <div>
+                <InputLabel for="address[1].city" value="City 2" />
+
+                <TextField name="address[1].city" id="address[1].city" type="text" class="mt-1 block w-full"
+                    :model-value="form.address[1].city" @update:model-value="(value) => form.address[1].city = value" />
+                <FieldErrorMessage class="mt-2" name="address[1].city" />
+            </div>
+            <InputError class="mt-2" :message="form.errors.address?.[0]" />
 
             <div>
                 <InputLabel for="bio" value="Bio" />
@@ -100,5 +136,4 @@ const form = useForm({
                 </Transition>
             </div>
         </Form>
-    </section>
-</template>
+    </section></template>
