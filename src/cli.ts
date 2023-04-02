@@ -15,7 +15,7 @@ const program = new Command();
 program
   .name("laravel-zodgen")
   .version(packageJson.version)
-  .description("Generate TypeScript types from your Laravel code")
+  .description("Generate Zod schemas from Laravel FormRequests")
   .option("-o, --output <value>", "Output directory", defaultOutputPath)
   .option(
     "--form-request-path",
