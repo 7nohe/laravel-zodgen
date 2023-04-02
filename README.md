@@ -1,5 +1,7 @@
 # Laravel Zodgen
 
+This is a package that generates [Zod](https://zod.dev) schemas from Laravel FormRequests. This allows you to share your validation rules between your Laravel backend and your TypeScript frontend.
+
 ## Features
 
 - Generate Zod schemas from Laravel FormRequests

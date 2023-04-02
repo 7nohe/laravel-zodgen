@@ -1,7 +1,7 @@
 {
   "name": "@7nohe/laravel-zodgen",
   "version": "0.0.1",
-  "description": "The library lets you generate Zod code from your Laravel code.",
+  "description": "The library lets you generate Zod schemas from Laravel FormRequests.",
   "main": "index.js",
   "bin": {
     "laravel-zodgen": "dist/src/cli.js"
@@ -22,8 +22,8 @@
   "files": [
     "dist"
   ],
-  "keywords": [],
-  "author": "",
+  "keywords": ["zod", "laravel", "typescript", "validation", "zodgen"],
+  "author": "Daiki Urata (@7nohe)",
   "license": "MIT",
   "dependencies": {
     "commander": "^10.0.0",
