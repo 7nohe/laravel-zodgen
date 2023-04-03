@@ -109,40 +109,58 @@ const parseRules = (rules: Rules) => {
   return mergedResult;
 };
 
+const createZodChainingRules = (rules: Field[], coercion: boolean = false) => {
+  const firstField = rules.at(0);
+  let property: CallExpression | Identifier | PropertyAccessExpression =
+    coercion && firstField && isPrimitive(firstField.name)
+      ? ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier("z"),
+          ts.factory.createIdentifier("coerce")
+        )
+      : ts.factory.createIdentifier("z");
+  rules.forEach((rule) => {
+    property = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(
+        property,
+        ts.factory.createIdentifier(rule.name)
+      ),
+      undefined,
+      rule.param
+        ? [
+            typeof rule.param === "number"
+              ? ts.factory.createNumericLiteral(rule.param)
+              : ts.factory.createStringLiteral(rule.param),
+          ]
+        : []
+    );
+  });
+
+  return property;
+};
+
 const convertRulesToSchema = (
   rules: ParsedRules | Field[],
   coercion: boolean
 ): ts.Expression => {
   if (Array.isArray(rules)) {
-    const firstValue = rules.at(0);
-    let property: CallExpression | Identifier | PropertyAccessExpression =
-      coercion && firstValue && isPrimitive(firstValue.name)
-        ? ts.factory.createPropertyAccessExpression(
-            ts.factory.createIdentifier("z"),
-            ts.factory.createIdentifier("coerce")
-          )
-        : ts.factory.createIdentifier("z");
-    rules.forEach((rule) => {
-      property = ts.factory.createCallExpression(
-        ts.factory.createPropertyAccessExpression(
-          property,
-          ts.factory.createIdentifier(rule.name)
-        ),
-        undefined,
-        rule.param
-          ? [
-              typeof rule.param === "number"
-                ? ts.factory.createNumericLiteral(rule.param)
-                : ts.factory.createStringLiteral(rule.param),
-            ]
-          : []
-      );
-    });
-    return property;
+    return createZodChainingRules(rules, coercion);
   }
   if (typeof rules === "object" && rules !== null) {
     const [firstKey, firstValue] = Object.entries(rules).at(0) ?? [];
-    // array input validation
+    // validation for array of primitive values
+    // eg: 'ids.*'
+    if (firstKey === "*" && firstValue && Array.isArray(firstValue)) {
+      const args = createZodChainingRules(firstValue, coercion);
+      return ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier("z"),
+          ts.factory.createIdentifier("array")
+        ),
+        undefined,
+        [args]
+      );
+    }
+    // validation for array of objects
     // eg: 'person.*.email'
     if (firstKey === "*" && firstValue && !Array.isArray(firstValue)) {
       const schema = convertRulesToSchema(firstValue, coercion);
