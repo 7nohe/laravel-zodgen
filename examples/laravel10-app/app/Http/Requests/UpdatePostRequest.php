@@ -22,7 +22,7 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "tag.ids.*" => "required|exists:tags,id"
         ];
     }
 }

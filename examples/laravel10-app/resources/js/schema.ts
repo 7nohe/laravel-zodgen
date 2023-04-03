@@ -1,5 +1,9 @@
 import { z } from "zod";
-export const UpdatePostRequest = z.object({});
+export const UpdatePostRequest = z.object({
+    tag: z.object({
+        ids: z.array(z.coerce.string().nonempty())
+    })
+});
 export const StorePostRequest = z.object({
     title: z.coerce.string().max(255).nonempty(),
     body: z.coerce.string().nonempty()
