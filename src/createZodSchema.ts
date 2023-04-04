@@ -6,6 +6,7 @@ import ts, {
 import { CLIOptions } from "./cli";
 import { isPrimitive } from "./utils/isPrimitive";
 import { AnyObject, mergeObjects } from "./utils/mergeObjects";
+import { arrayMark, requiredArrayMark } from "./constants";
 
 type Field = { name: string; param?: string | number; children?: Field };
 export type Rules = { [key: string]: string[] };
@@ -138,6 +139,30 @@ const createZodChainingRules = (rules: Field[], coercion: boolean = false) => {
   return property;
 };
 
+const createArraySchema = (
+  args: ts.Identifier | ts.PropertyAccessExpression
+) => {
+  return ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier("z"),
+      ts.factory.createIdentifier("array")
+    ),
+    undefined,
+    [args]
+  );
+};
+
+const createArrayofObjectsSchema = (schema: ts.Expression) => {
+  return ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier("z"),
+      ts.factory.createIdentifier("array")
+    ),
+    undefined,
+    [schema]
+  );
+};
+
 const convertRulesToSchema = (
   rules: ParsedRules | Field[],
   coercion: boolean
@@ -149,28 +174,45 @@ const convertRulesToSchema = (
     const [firstKey, firstValue] = Object.entries(rules).at(0) ?? [];
     // validation for array of primitive values
     // eg: 'ids.*'
-    if (firstKey === "*" && firstValue && Array.isArray(firstValue)) {
+    if (firstKey === arrayMark && firstValue && Array.isArray(firstValue)) {
+      const args = createZodChainingRules(firstValue, coercion);
+      return createArraySchema(args);
+    }
+    if (
+      firstKey === requiredArrayMark &&
+      firstValue &&
+      Array.isArray(firstValue)
+    ) {
       const args = createZodChainingRules(firstValue, coercion);
       return ts.factory.createCallExpression(
         ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier("z"),
-          ts.factory.createIdentifier("array")
+          createArraySchema(args),
+          ts.factory.createIdentifier("nonempty")
         ),
         undefined,
-        [args]
+        []
       );
     }
+
     // validation for array of objects
     // eg: 'person.*.email'
-    if (firstKey === "*" && firstValue && !Array.isArray(firstValue)) {
+    if (firstKey === arrayMark && firstValue && !Array.isArray(firstValue)) {
+      const schema = convertRulesToSchema(firstValue, coercion);
+      return createArrayofObjectsSchema(schema);
+    }
+    if (
+      firstKey === requiredArrayMark &&
+      firstValue &&
+      !Array.isArray(firstValue)
+    ) {
       const schema = convertRulesToSchema(firstValue, coercion);
       return ts.factory.createCallExpression(
         ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier("z"),
-          ts.factory.createIdentifier("array")
+          createArrayofObjectsSchema(schema),
+          ts.factory.createIdentifier("nonempty")
         ),
         undefined,
-        [schema]
+        []
       );
     }
     return ts.factory.createCallExpression(

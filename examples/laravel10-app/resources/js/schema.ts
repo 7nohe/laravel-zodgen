@@ -19,6 +19,9 @@ export const ProfileUpdateRequest = z.object({
         city: z.coerce.string().nonempty()
     }))
 });
+export const DestroyPostRequest = z.object({
+    ids: z.array(z.coerce.number().int().optional()).nonempty()
+});
 export const LoginRequest = z.object({
     email: z.coerce.string().email().nonempty(),
     password: z.coerce.string().nonempty()
