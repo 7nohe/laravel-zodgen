@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
-import { Form } from 'vee-validate';
-import { toFormValidator } from '@vee-validate/zod';
+import { Link, usePage } from '@inertiajs/vue3';
 import { ProfileUpdateRequest } from '@/schema';
 import TextField from '@/Components/TextField.vue';
-import FieldErrorMessage from '@/Components/FieldErrorMessage.vue';
 import InputError from '@/Components/InputError.vue';
-
-const validationSchema = toFormValidator(ProfileUpdateRequest)
+import { useZodForm } from '@inertia-vue-form/zod';
 
 defineProps<{
     mustVerifyEmail?: Boolean;
@@ -18,14 +14,19 @@ defineProps<{
 
 const user = usePage().props.auth.user;
 
-const form = useForm({
+
+const form = useZodForm({
     name: user.name,
     email: user.email,
     age: user.age,
     height: user.height,
     bio: user.bio,
     address: user.address ?? [{ city: '', country: '' }, { city: '', country: '', }],
-});
+}, ProfileUpdateRequest);
+
+function submit() {
+    form.patch(route('profile.update'))
+}
 </script>
 
 <template>
@@ -38,12 +39,10 @@ const form = useForm({
             </p>
         </header>
 
-        <Form :validation-schema="validationSchema" @submit="form.patch(route('profile.update'))" class="mt-6 space-y-6"
-            v-slot="{ values }">
+        <form @submit.prevent="submit">
             <div>
                 <InputLabel for="name" value="Name" />
                 <TextField name="name" id="name" type="text" class="mt-1 block w-full" v-model="form.name" required />
-                <FieldErrorMessage class="mt-2" name="name" />
                 <InputError class="mt-2" :message="form.errors.name" />
             </div>
 
@@ -51,66 +50,60 @@ const form = useForm({
                 <InputLabel for="email" value="Email" />
 
                 <TextField name="email" id="email" type="text" class="mt-1 block w-full" v-model="form.email" required />
-                <FieldErrorMessage class="mt-2" name="email" />
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
             <div>
                 <InputLabel for="age" value="Age" />
 
-            <TextField name="age" id="age" type="text" class="mt-1 block w-full" v-model="form.age" />
-            <FieldErrorMessage class="mt-2" name="age" />
-            <InputError class="mt-2" :message="form.errors.age" />
-        </div>
+                <TextField name="age" id="age" type="text" class="mt-1 block w-full" v-model="form.age" />
+                <InputError class="mt-2" :message="form.errors.age" />
+            </div>
 
-        <div>
+            <div>
                 <InputLabel for="height" value="Height" />
 
                 <TextField name="height" id="height" type="text" class="mt-1 block w-full" v-model="form.height" />
-                <FieldErrorMessage class="mt-2" name="height" />
                 <InputError class="mt-2" :message="form.errors.height" />
             </div>
 
 
             <div>
-                <InputLabel for="address[0].country" value="Country 1" />
+                <InputLabel for="address.0.country" value="Country 1" />
 
-                <TextField name="address[0].country" id="address[0].country" type="text" class="mt-1 block w-full"
+                <TextField name="address.0.country" id="address.0.country" type="text" class="mt-1 block w-full"
                     :model-value="form.address[0].country"
                     @update:model-value="(value) => form.address[0].country = value" />
-                <FieldErrorMessage class="mt-2" name="address[0].country" />
+                <InputError class="mt-2" :message="form.errors['address.0.country']" />
             </div>
             <div>
-                <InputLabel for="address[0].city" value="City 1" />
+                <InputLabel for="address.0.city" value="City 1" />
 
-                <TextField name="address[0].city" id="address[0].city" type="text" class="mt-1 block w-full"
+                <TextField name="address.0.city" id="address.0.city" type="text" class="mt-1 block w-full"
                     :model-value="form.address[0].city" @update:model-value="(value) => form.address[0].city = value" />
-                <FieldErrorMessage class="mt-2" name="address[0].city" />
+                <InputError class="mt-2" :message="form.errors['address.0.city']" />
             </div>
-            <InputError class="mt-2" :message="form.errors.address?.[0]" />
 
             <div>
-                <InputLabel for="address[1].country" value="Country 2" />
+                <InputLabel for="address.1..country" value="Country 2" />
 
-                <TextField name="address[1].country" id="address[1].country" type="text" class="mt-1 block w-full"
+                <TextField name="address.1.country" id="address.1.country" type="text" class="mt-1 block w-full"
                     :model-value="form.address[1].country"
                     @update:model-value="(value) => form.address[1].country = value" />
-                <FieldErrorMessage class="mt-2" name="address[1].country" />
+                <InputError class="mt-2" :message="form.errors['address.1.country']" />
             </div>
             <div>
-                <InputLabel for="address[1].city" value="City 2" />
+                <InputLabel for="address.1.city" value="City 2" />
 
-                <TextField name="address[1].city" id="address[1].city" type="text" class="mt-1 block w-full"
+                <TextField name="address.1.city" id="address.1.city" type="text" class="mt-1 block w-full"
                     :model-value="form.address[1].city" @update:model-value="(value) => form.address[1].city = value" />
-                <FieldErrorMessage class="mt-2" name="address[1].city" />
+                <InputError class="mt-2" :message="form.errors['address.1.city']" />
             </div>
-            <InputError class="mt-2" :message="form.errors.address?.[0]" />
 
             <div>
                 <InputLabel for="bio" value="Bio" />
 
                 <TextField name="bio" id="bio" textarea class="mt-1 block w-full" v-model="form.bio" required />
-                <FieldErrorMessage class="mt-2" name="bio" />
                 <InputError class="mt-2" :message="form.errors.bio" />
             </div>
 
@@ -135,5 +128,6 @@ const form = useForm({
                     <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
                 </Transition>
             </div>
-        </Form>
-    </section></template>
+        </form>
+    </section>
+</template>
