@@ -22,11 +22,10 @@
         "vue-tsc": "^1.2.0"
     },
     "dependencies": {
-        "@vee-validate/zod": "^4.8.4",
+        "@inertia-vue-form/zod": "^0.1.1",
         "commander": "^10.0.0",
         "glob": "^9.3.2",
         "php-parser": "^3.1.4",
-        "vee-validate": "^4.8.4",
         "zod": "^3.21.4"
     }
 }
