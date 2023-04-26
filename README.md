@@ -129,3 +129,6 @@ $ ./vendor/bin/sail npm install
 $ pnpm install
 $ sh debug.sh
 ```
+
+## License
+MIT
