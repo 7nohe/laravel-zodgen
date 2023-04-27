@@ -104,6 +104,11 @@ Options:
   -h, --help            display help for command
 ```
 
+## [Inertia Vue Form](https://github.com/7nohe/inertia-vue-form)
+
+This library is an extension of Inertia's [useForm()](https://inertiajs.com/forms#form-helper), enabling form validation using Zod.
+You can directly use the code generated from Laravel Zodgen in this library.
+
 ## Development
 
 ### Setup example project
