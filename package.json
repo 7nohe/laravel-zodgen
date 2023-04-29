@@ -2,14 +2,22 @@
   "name": "@7nohe/laravel-zodgen",
   "version": "0.1.2",
   "description": "The library lets you generate Zod schemas from Laravel FormRequests.",
-  "main": "index.js",
+  "type": "module",
   "bin": {
-    "laravel-zodgen": "dist/src/cli.js"
+    "laravel-zodgen": "dist/cli.js"
   },
-  "exports": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "build": "tsup src/index.ts src/cli.ts --format esm,cjs --dts --clean",
     "prepublishOnly": "pnpm run build",
     "release": "npx git-ensure -a && npx bumpp --commit --tag --push"
   },
@@ -39,6 +47,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@types/node": "^18.15.6"
+    "@types/node": "^18.15.6",
+    "tsup": "^6.7.0"
   }
 }
