@@ -3,7 +3,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vue-tsc && vite build",
-        "zodgen": "node node_modules/@7nohe/laravel-zodgen/cli.js --coercion"
+        "zodgen": "node node_modules/@7nohe/laravel-zodgen/cli.cjs --coercion"
     },
     "devDependencies": {
         "@7nohe/laravel-zodgen": "file:../../../laravel-zodgen/dist",

@@ -3,16 +3,16 @@ import path from "path";
 import { getRules } from "./getRules";
 import fs from "fs";
 import glob from "glob";
-import { defaultFormRequestPath } from "./constants";
-import { createZodSchema, Rules } from "./createZodSchema";
+import {
+  createZodSchema,
+  ParsedRules,
+  parseRules,
+  Rules,
+} from "./createZodSchema";
 import ts from "typescript";
 import { createZodImport } from "./createZodImport";
 
-export async function generate({
-  formRequestPath,
-  output,
-  coercion,
-}: CLIOptions) {
+export function parseFormRequests(formRequestPath: string, simpleMode: boolean = false) {
   const parsedFormRequestsPath = path
     .join(formRequestPath, "**", "*.php")
     .replace(/\\/g, "/");
@@ -26,9 +26,23 @@ export async function generate({
     }),
     {}
   );
-  const schemas = Object.entries(rules).map(([key, value]) =>
-    createZodSchema({ objectName: key, rules: value, coercion })
-  );
+  // Parse Laravel validation rules into data for generating Zod schema code
+  const parsedRules = Object.entries(rules).map(([key, value]) => [
+    key,
+    parseRules(value, simpleMode),
+  ]) as [string, ParsedRules][];
+  return Object.fromEntries(parsedRules);
+}
+
+export async function generate({
+  formRequestPath,
+  output,
+  coercion,
+}: CLIOptions) {
+  const rules = parseFormRequests(formRequestPath);
+  const schemas = Object.entries(rules).map(([key, value]) => {
+    return createZodSchema({ objectName: key, rules: value, coercion });
+  });
   const sourceFile = ts.factory.createSourceFile(
     [createZodImport(), ...schemas],
     ts.factory.createToken(ts.SyntaxKind.EndOfFileToken),
