@@ -3,12 +3,7 @@ import { generate } from "./generate";
 import { Command } from "commander";
 import packageJson from "../package.json";
 import { defaultFormRequestPath, defaultOutputPath } from "./constants";
-
-export type CLIOptions = {
-  output: string;
-  formRequestPath: string;
-  coercion: boolean;
-};
+import { CLIOptions } from "./types";
 
 const program = new Command();
 

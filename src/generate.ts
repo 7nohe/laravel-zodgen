@@ -1,4 +1,4 @@
-import { CLIOptions } from "./cli";
+import { CLIOptions } from "./types";
 import path from "path";
 import { getRules } from "./getRules";
 import fs from "fs";
