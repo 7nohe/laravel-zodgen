@@ -14,10 +14,10 @@ export type ParsedRules = Record<string, Field[] | Record<string, any>>;
 
 export type CreateZodSchemaType = Pick<CLIOptions, "coercion"> & {
   objectName: string;
-  rules: Rules;
+  rules: ParsedRules;
 };
 
-const parseRules = (rules: Rules) => {
+export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
   const parsedRules: ParsedRules = Object.entries(rules).reduce(
     (acc, [key, value]) => {
       const newValue: Field[] = [];
@@ -86,6 +86,24 @@ const parseRules = (rules: Rules) => {
       }
       if (isRequired && newValue.find((v) => v.name === "string")) {
         newValue.push({ name: "nonempty" });
+      }
+
+      // return only primitive type
+      if (onlyPrimitive) {
+        let primitive = { name: 'any', isRequired }
+        if (newValue.find(v => v.name === 'string')) {
+          primitive = { name: 'string', isRequired }
+        }
+        if (newValue.find(v => v.name === 'number')) {
+          primitive = { name: 'number', isRequired }
+        }
+        if (newValue.find(v => v.name === 'boolean')) {
+          primitive = { name: 'boolean', isRequired }
+        }
+        return {
+          ...acc,
+          [key]: primitive
+        }
       }
 
       return {
@@ -251,11 +269,9 @@ export const createZodSchema = ({
   rules,
   coercion,
 }: CreateZodSchemaType) => {
-  // Parse Laravel validation rules into data for generating Zod schema code
-  const parsedRules = parseRules(rules);
 
   // Convert parsed rules into Zod schema code
-  const schema = convertRulesToSchema(parsedRules, coercion);
+  const schema = convertRulesToSchema(rules, coercion);
 
   return ts.factory.createVariableStatement(
     [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
