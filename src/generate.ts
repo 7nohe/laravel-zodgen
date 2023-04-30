@@ -12,7 +12,7 @@ import {
 import ts from "typescript";
 import { createZodImport } from "./createZodImport";
 
-export function parseFormRequests(formRequestPath: string, simpleMode: boolean = false) {
+export function parseFormRequests(formRequestPath: string, onlyPrimitive: boolean = false) {
   const parsedFormRequestsPath = path
     .join(formRequestPath, "**", "*.php")
     .replace(/\\/g, "/");
@@ -29,7 +29,7 @@ export function parseFormRequests(formRequestPath: string, simpleMode: boolean =
   // Parse Laravel validation rules into data for generating Zod schema code
   const parsedRules = Object.entries(rules).map(([key, value]) => [
     key,
-    parseRules(value, simpleMode),
+    parseRules(value, onlyPrimitive),
   ]) as [string, ParsedRules][];
   return Object.fromEntries(parsedRules);
 }
