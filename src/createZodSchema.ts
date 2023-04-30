@@ -3,7 +3,7 @@ import ts, {
   Identifier,
   PropertyAccessExpression,
 } from "typescript";
-import { CLIOptions } from "./cli";
+import { CLIOptions } from "./types";
 import { isPrimitive } from "./utils/isPrimitive";
 import { AnyObject, mergeObjects } from "./utils/mergeObjects";
 import { arrayMark, requiredArrayMark } from "./constants";
