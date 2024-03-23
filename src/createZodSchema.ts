@@ -84,9 +84,6 @@ export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
       if (!isRequired) {
         newValue.push({ name: "optional" });
       }
-      if (isRequired && newValue.find((v) => v.name === "string")) {
-        newValue.push({ name: "nonempty" });
-      }
 
       // return only primitive type
       if (onlyPrimitive) {
