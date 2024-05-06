@@ -58,6 +58,9 @@ export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
             }
             field = { name: "nonnegative" };
             break;
+	  			case 'boolean':
+	    				field = { name: 'boolean' };
+	    				break;
           case "nullable":
             field = { name: "nullable" };
             break;
