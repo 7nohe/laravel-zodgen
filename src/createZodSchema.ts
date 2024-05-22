@@ -26,7 +26,6 @@ export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
     })
     return rule;
   })
-  console.log(sortedRules);
   const parsedRules: ParsedRules = sortedRules.reduce(
     (acc, [key, value]) => {
       const newValue: Field[] = [];
