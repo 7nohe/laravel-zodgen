@@ -2,7 +2,7 @@ import { CLIOptions } from "./types";
 import path from "path";
 import { getRules } from "./getRules";
 import fs from "fs";
-import glob from "glob";
+import { sync } from "glob";
 import {
   createZodSchema,
   ParsedRules,
@@ -16,7 +16,7 @@ export function parseFormRequests(formRequestPath: string, onlyPrimitive: boolea
   const parsedFormRequestsPath = path
     .join(formRequestPath, "**", "*.php")
     .replace(/\\/g, "/");
-  const formRequests = glob.sync(parsedFormRequestsPath);
+  const formRequests = sync(parsedFormRequestsPath);
   const rules: { [key: string]: Rules } = formRequests.reduce(
     (acc, formRequest) => ({
       ...acc,
