@@ -41,6 +41,12 @@ export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
               newValue.unshift({ name: "date" });
             }
             break;
+          case "url":
+            field = { name: "url" };
+            if (!newValue.find((v) => v.name === "string")) {
+              newValue.unshift({ name: "string" });
+            }
+            break;
           case "email":
             field = { name: "email" };
             if (!newValue.find((v) => v.name === "string")) {
@@ -133,9 +139,9 @@ const createZodChainingRules = (rules: Field[], coercion: boolean = false) => {
   let property: CallExpression | Identifier | PropertyAccessExpression =
     coercion && firstField && isPrimitive(firstField.name)
       ? ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier("z"),
-          ts.factory.createIdentifier("coerce")
-        )
+        ts.factory.createIdentifier("z"),
+        ts.factory.createIdentifier("coerce")
+      )
       : ts.factory.createIdentifier("z");
   rules.forEach((rule) => {
     property = ts.factory.createCallExpression(
@@ -146,10 +152,10 @@ const createZodChainingRules = (rules: Field[], coercion: boolean = false) => {
       undefined,
       rule.param
         ? [
-            typeof rule.param === "number"
-              ? ts.factory.createNumericLiteral(rule.param)
-              : ts.factory.createStringLiteral(rule.param),
-          ]
+          typeof rule.param === "number"
+            ? ts.factory.createNumericLiteral(rule.param)
+            : ts.factory.createStringLiteral(rule.param),
+        ]
         : []
     );
   });
