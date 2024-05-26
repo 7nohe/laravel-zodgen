@@ -18,7 +18,15 @@ export type CreateZodSchemaType = Pick<CLIOptions, "coercion"> & {
 };
 
 export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
-  const parsedRules: ParsedRules = Object.entries(rules).reduce(
+  const sortedRules = Object.entries(rules).map(rule => {
+    rule[1] = rule[1].sort((a, b) => {
+      if (a == 'nullable') { return 1; }
+      if (b == 'nullable') { return -1; }
+      return 0;
+    })
+    return rule;
+  })
+  const parsedRules: ParsedRules = sortedRules.reduce(
     (acc, [key, value]) => {
       const newValue: Field[] = [];
       let isRequired = false;
@@ -39,6 +47,12 @@ export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
           case "date":
             if (!newValue.find((v) => v.name === "date")) {
               newValue.unshift({ name: "date" });
+            }
+            break;
+          case "url":
+            field = { name: "url" };
+            if (!newValue.find((v) => v.name === "string")) {
+              newValue.unshift({ name: "string" });
             }
             break;
           case "email":
@@ -133,9 +147,9 @@ const createZodChainingRules = (rules: Field[], coercion: boolean = false) => {
   let property: CallExpression | Identifier | PropertyAccessExpression =
     coercion && firstField && isPrimitive(firstField.name)
       ? ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier("z"),
-          ts.factory.createIdentifier("coerce")
-        )
+        ts.factory.createIdentifier("z"),
+        ts.factory.createIdentifier("coerce")
+      )
       : ts.factory.createIdentifier("z");
   rules.forEach((rule) => {
     property = ts.factory.createCallExpression(
@@ -146,10 +160,10 @@ const createZodChainingRules = (rules: Field[], coercion: boolean = false) => {
       undefined,
       rule.param
         ? [
-            typeof rule.param === "number"
-              ? ts.factory.createNumericLiteral(rule.param)
-              : ts.factory.createStringLiteral(rule.param),
-          ]
+          typeof rule.param === "number"
+            ? ts.factory.createNumericLiteral(rule.param)
+            : ts.factory.createStringLiteral(rule.param),
+        ]
         : []
     );
   });
