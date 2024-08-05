@@ -31,70 +31,73 @@ export const parseRules = (rules: Rules, onlyPrimitive: boolean = false) => {
       const newValue: Field[] = [];
       let isRequired = false;
       value.forEach((v) => {
-        const parts = v.split(":");
-        const method = parts[0];
-        const args = parts[1] ?? "";
-        let field: Field | undefined;
-        switch (method) {
-          case "required":
-            isRequired = true;
-            break;
-          case "string":
-            if (!newValue.find((v) => v.name === "string")) {
-              newValue.unshift({ name: "string" });
-            }
-            break;
-          case "date":
-            if (!newValue.find((v) => v.name === "date")) {
-              newValue.unshift({ name: "date" });
-            }
-            break;
-          case "url":
-            field = { name: "url" };
-            if (!newValue.find((v) => v.name === "string")) {
-              newValue.unshift({ name: "string" });
-            }
-            break;
-          case "email":
-            field = { name: "email" };
-            if (!newValue.find((v) => v.name === "string")) {
-              newValue.unshift({ name: "string" });
-            }
-            break;
-          case "numeric":
-            if (!newValue.find((v) => v.name === "numeric")) {
-              newValue.unshift({ name: "numeric" });
-            }
-            break;
-          case "decimal":
-            if (!newValue.find((v) => v.name === "number")) {
-              newValue.unshift({ name: "number" });
-            }
-            field = { name: "nonnegative" };
-            break;
-          case "boolean":
-            field = { name: "boolean" };
-            break;
-          case "nullable":
-            field = { name: "nullable" };
-            break;
-          case "min":
-            field = { name: "min", param: Number(args) };
-            break;
-          case "max":
-            field = { name: "max", param: Number(args) };
-            break;
-          case "integer":
-            if (!newValue.find((v) => v.name === "number")) {
-              newValue.unshift({ name: "number" });
-            }
-            field = { name: "int" };
-            break;
-        }
-        if (field) {
-          newValue.push(field);
-        }
-      });
+        if(typeof v == "string")
+        {
+          const parts = v.split(":");
+          const method = parts[0];
+          const args = parts[1] ?? "";
+          let field: Field | undefined;
+          switch (method) {
+            case "required":
+              isRequired = true;
+              break;
+            case "string":
+              if (!newValue.find((v) => v.name === "string")) {
+                newValue.unshift({ name: "string" });
+              }
+              break;
+            case "date":
+              if (!newValue.find((v) => v.name === "date")) {
+                newValue.unshift({ name: "date" });
+              }
+              break;
+            case "url":
+              field = { name: "url" };
+              if (!newValue.find((v) => v.name === "string")) {
+                newValue.unshift({ name: "string" });
+              }
+              break;
+            case "email":
+              field = { name: "email" };
+              if (!newValue.find((v) => v.name === "string")) {
+                newValue.unshift({ name: "string" });
+              }
+              break;
+            case "numeric":
+              if (!newValue.find((v) => v.name === "numeric")) {
+                newValue.unshift({ name: "numeric" });
+              }
+              break;
+            case "decimal":
+              if (!newValue.find((v) => v.name === "number")) {
+                newValue.unshift({ name: "number" });
+              }
+              field = { name: "nonnegative" };
+              break;
+            case "boolean":
+              field = { name: "boolean" };
+              break;
+            case "nullable":
+              field = { name: "nullable" };
+              break;
+            case "min":
+              field = { name: "min", param: Number(args) };
+              break;
+            case "max":
+              field = { name: "max", param: Number(args) };
+              break;
+            case "integer":
+              if (!newValue.find((v) => v.name === "number")) {
+                newValue.unshift({ name: "number" });
+              }
+              field = { name: "int" };
+              break;
+          }
+          if (field) {
+            newValue.push(field);
+          }
+      }
+    });
       if (!newValue.some((v) => isPrimitive(v.name))) {
         newValue.unshift({ name: "string" });
       }
