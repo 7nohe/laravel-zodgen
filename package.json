@@ -49,5 +49,6 @@
   "devDependencies": {
     "@types/node": "^20.12.8",
     "tsup": "^8.0.2"
-  }
+  },
+  "packageManager": "pnpm@9.10.0"
 }
